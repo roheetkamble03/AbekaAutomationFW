@@ -5,7 +5,7 @@
         <parameter name="browser" value="Chrome"></parameter>
         <classes>
             <class name="abekaUISuite.LoginTestSuite">
-                <methods><include name="loginTest"/>
+                <methods><include name="enrollmentPurchase"/>
                 </methods>
             </class>
         </classes>

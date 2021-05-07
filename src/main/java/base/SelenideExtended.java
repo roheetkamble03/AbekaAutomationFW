@@ -1,35 +1,37 @@
 package base;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.ex.ElementNotFound;
 import constants.EnumUtil;
+import elementConstants.AbekaHome;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.*;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import static com.codeborne.selenide.Selenide.*;
+
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
 
 public abstract class SelenideExtended extends BaseClass {
-    WebDriver driver;
-    String textXpath = "//*[normalize-space(text())='%s']";
-    String textContainsXpath = "//*[contains(normalize-space(text()),'%s')]";
+    String textXpath = "(//*[normalize-space(text())='%s']|//text()[normalize-space()='%s'])[1]";
+    String textContainsXpath = "(//*[contains(normalize-space(text()),'%s')]|//text()[contains(normalize-space(),'%s')])[1]";
 
     public void click(String identifier){
+        waitForElementTobeExist(identifier);
         getElement(identifier).click();
-    }
-
-    public void scrollToVisibleElement(String identifier) {
-        JavascriptExecutor js = (JavascriptExecutor) driver;
-        js.executeScript("arguments[0].scrollIntoView();", getElement(identifier));
-        click("id=123");
     }
 
     public boolean isElementDisplayed(String identifier) {
@@ -118,7 +120,7 @@ public abstract class SelenideExtended extends BaseClass {
             String javaScript = "var evObj = document.createEvent('MouseEvents');"
                     + "evObj.initMouseEvent(\"mouseover\",true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);"
                     + "arguments[0].dispatchEvent(evObj);";
-            JavascriptExecutor js = (JavascriptExecutor) driver;
+            JavascriptExecutor js = (JavascriptExecutor) getDriver();
             js.executeScript(javaScript, element);
     }
 
@@ -127,7 +129,7 @@ public abstract class SelenideExtended extends BaseClass {
      * @param identifier element identifier
      */
     public void clickByJavaScript(String identifier) {
-            JavascriptExecutor executor = (JavascriptExecutor) driver;
+            JavascriptExecutor executor = (JavascriptExecutor) getDriver();
             executor.executeScript("arguments[0].click();", getElement(identifier));
     }
 
@@ -137,8 +139,8 @@ public abstract class SelenideExtended extends BaseClass {
      * @return
      */
     public void switchToFrameByIndex(int index) {
-            new WebDriverWait(driver, 15).until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//iframe")));
-            driver.switchTo().frame(index);
+            new WebDriverWait(getDriver(), 15).until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//iframe")));
+            getDriver().switchTo().frame(index);
     }
 
     /**
@@ -148,7 +150,7 @@ public abstract class SelenideExtended extends BaseClass {
      *
      */
     public void switchToFrameById(String idValue) {
-            driver.switchTo().frame(idValue);
+            getDriver().switchTo().frame(idValue);
     }
 
     /**
@@ -158,7 +160,7 @@ public abstract class SelenideExtended extends BaseClass {
      *
      */
     public void switchToFrameByName(String nameValue) {
-            driver.switchTo().frame(nameValue);
+            getDriver().switchTo().frame(nameValue);
     }
 
     /**
@@ -166,7 +168,7 @@ public abstract class SelenideExtended extends BaseClass {
      * @param driver
      */
     public void switchToDefaultFrame(WebDriver driver) {
-            driver.switchTo().defaultContent();
+            getDriver().switchTo().defaultContent();
     }
 
     /**
@@ -174,7 +176,7 @@ public abstract class SelenideExtended extends BaseClass {
      * @param identifier element identifier
      */
     public void mouseOverOnElement(String identifier) {
-        new Actions(driver).moveToElement(getElement(identifier)).build().perform();
+        new Actions(getDriver()).moveToElement(getElement(identifier)).build().perform();
     }
 
     /**
@@ -183,9 +185,9 @@ public abstract class SelenideExtended extends BaseClass {
      * @return
      */
     public void bringElementIntoView(String identifier) {
-            JavascriptExecutor executor = (JavascriptExecutor) driver;
-            executor.executeScript("arguments[0].scrollIntoView(true);", getElement(identifier));
-            Actions actions = new Actions(driver);
+            JavascriptExecutor executor = (JavascriptExecutor) getDriver();
+            executor.executeScript("arguments[0].scrollIntoView({block: \"center\"});", getElement(identifier));
+            Actions actions = new Actions(getDriver());
             actions.moveToElement(getElement(identifier)).build().perform();
     }
 
@@ -197,8 +199,8 @@ public abstract class SelenideExtended extends BaseClass {
      * @return
      */
     public void dragElementFromOnePointXToAnotherY(String identifier, int x, int y) {
-            new Actions(driver).dragAndDropBy(getElement(identifier), x, y).build().perform();
-            implicitWaitFor(5);
+            new Actions(getDriver()).dragAndDropBy(getElement(identifier), x, y).build().perform();
+            implicitWaitInSeconds(5);
     }
 
     /**
@@ -208,7 +210,7 @@ public abstract class SelenideExtended extends BaseClass {
      * @return
      */
     public void dragAndDropElementFromToElement(String source, String target) {
-            new Actions(driver).dragAndDrop(getElement(source), getElement(target)).perform();
+            new Actions(getDriver()).dragAndDrop(getElement(source), getElement(target)).perform();
     }
 
     /**
@@ -219,8 +221,8 @@ public abstract class SelenideExtended extends BaseClass {
      * @return
      */
     public void slideElement(String identifier, int x, int y) {
-            new Actions(driver).dragAndDropBy(getElement(identifier), x, y).build().perform();// 150,0
-            implicitWaitFor(5);
+            new Actions(getDriver()).dragAndDropBy(getElement(identifier), x, y).build().perform();// 150,0
+            implicitWaitInSeconds(5);
     }
 
     /**
@@ -229,7 +231,7 @@ public abstract class SelenideExtended extends BaseClass {
      * @return
      */
     public void rightClickOnElement(String identifier) {
-            Actions clicker = new Actions(driver);
+            Actions clicker = new Actions(getDriver());
             clicker.contextClick(getElement(identifier)).perform();
     }
 
@@ -241,29 +243,29 @@ public abstract class SelenideExtended extends BaseClass {
      * @return
      */
     public void switchWindowByTitle(String windowTitle, int count) {
-            Set<String> windowList = driver.getWindowHandles();
+            Set<String> windowList = getDriver().getWindowHandles();
 
             String[] array = windowList.toArray(new String[0]);
 
-            driver.switchTo().window(array[count-1]);
+            getDriver().switchTo().window(array[count-1]);
     }
 
     /**
      * Switching to new window
      */
     public void switchToNewWindow() {
-            Set<String> s=driver.getWindowHandles();
+            Set<String> s=getDriver().getWindowHandles();
             Object popup[]=s.toArray();
-            driver.switchTo().window(popup[1].toString());
+            getDriver().switchTo().window(popup[1].toString());
     }
 
     /**
      * Switching to old window
      */
     public void switchToOldWindow() {
-         Set<String> s=driver.getWindowHandles();
+         Set<String> s=getDriver().getWindowHandles();
          Object popup[]=s.toArray();
-         driver.switchTo().window(popup[0].toString());
+         getDriver().switchTo().window(popup[0].toString());
     }
 
     /**
@@ -301,7 +303,7 @@ public abstract class SelenideExtended extends BaseClass {
      *
      */
     public void acceptAlert() {
-        Alert alert = driver.switchTo().alert();
+        Alert alert = getDriver().switchTo().alert();
             // if present consume the alert
             alert.accept();
     }
@@ -311,7 +313,7 @@ public abstract class SelenideExtended extends BaseClass {
      * @param url
      */
     public void navigateTo(String url) {
-        driver.navigate().to(url);
+        getDriver().navigate().to(url);
     }
 
     /**
@@ -322,7 +324,7 @@ public abstract class SelenideExtended extends BaseClass {
     {
         try
         {
-            driver.switchTo().alert();
+            getDriver().switchTo().alert();
             return true;
         }   // try
         catch (NoAlertPresentException Ex)
@@ -338,7 +340,7 @@ public abstract class SelenideExtended extends BaseClass {
     public String getPageTitle() {
         boolean flag = false;
 
-        String text = driver.getTitle();
+        String text = getDriver().getTitle();
         if (flag) {
             System.out.println("Title of the page is: \""+text+"\"");
         }
@@ -352,7 +354,7 @@ public abstract class SelenideExtended extends BaseClass {
     public String getCurrentURL()  {
         boolean flag = false;
 
-        String text = driver.getCurrentUrl();
+        String text = getDriver().getCurrentUrl();
         if (flag) {
             System.out.println("Current URL is: \""+text+"\"");
         }
@@ -362,24 +364,42 @@ public abstract class SelenideExtended extends BaseClass {
     /**
      *
      * @param identifier
-     * @param timeOut
-     * @param pollingTime
      */
-    public void waitForElementTobeVisible(String identifier, int timeOut, int pollingTime) {
-        Wait<WebDriver> wait = null;
-        wait = new FluentWait<>(driver)
-                    .withTimeout(Duration.ofSeconds(timeOut))
-                    .pollingEvery(Duration.ofSeconds(pollingTime))
-                    .ignoring(Exception.class);
-            wait.until(ExpectedConditions.visibilityOf(getElement(identifier)));
+    public void waitForElementTobeVisible(String identifier) {
+        try {
+            getElement(identifier).shouldBe(Condition.visible, Duration.ofSeconds(elementLoadWait));
+        }catch (InvalidSelectorException e){
+
+        }
+    }
+
+    /**
+     *
+     * @param identifier
+     */
+    public void waitForElementTobeExist(String identifier) {
+        getElement(identifier).shouldBe(Condition.exist,Duration.ofSeconds(elementLoadWait));
+    }
+
+    public void waitForElementTobeEnabled(String identifier){
+        waitForElementTobeVisible(identifier);
+        getElement(identifier).shouldBe(Condition.enabled,Duration.ofSeconds(elementLoadWait));
     }
 
     /**
      *
      * @param timeOutInSeconds
      */
-    public void implicitWaitFor(int timeOutInSeconds) {
-        driver.manage().timeouts().implicitlyWait(timeOutInSeconds, TimeUnit.SECONDS);
+    public void implicitWaitInSeconds(int timeOutInSeconds) {
+        getDriver().manage().timeouts().implicitlyWait(timeOutInSeconds, TimeUnit.SECONDS);
+    }
+
+    /**
+     *
+     * @param timeOutInMilliSeconds
+     */
+    public void implicitWaitInMilliSeconds(int timeOutInMilliSeconds) {
+        getDriver().manage().timeouts().implicitlyWait(timeOutInMilliSeconds, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -388,7 +408,7 @@ public abstract class SelenideExtended extends BaseClass {
      * @param timeOut
      */
     public void explicitWait(String identifier, int timeOut ) {
-        WebDriverWait wait = new WebDriverWait(driver,timeOut);
+        WebDriverWait wait = new WebDriverWait(getDriver(),timeOut);
         wait.until(ExpectedConditions.presenceOfElementLocated(getByClause(identifier)));
     }
 
@@ -397,7 +417,7 @@ public abstract class SelenideExtended extends BaseClass {
      * @param timeOut
      */
     public void waitTillPageLoad(int timeOut) {
-        driver.manage().timeouts().pageLoadTimeout(timeOut, TimeUnit.SECONDS);
+        getDriver().manage().timeouts().pageLoadTimeout(timeOut, TimeUnit.SECONDS);
     }
 
     /**
@@ -407,7 +427,7 @@ public abstract class SelenideExtended extends BaseClass {
      */
     public String screenShot(String filename) {
         String dateName = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
-        TakesScreenshot takesScreenshot = (TakesScreenshot) driver;
+        TakesScreenshot takesScreenshot = (TakesScreenshot) getDriver();
         File source = takesScreenshot.getScreenshotAs(OutputType.FILE);
         String destination = System.getProperty("user.dir") + "\\ScreenShots\\" + filename + "_" + dateName + ".png";
 
@@ -434,33 +454,73 @@ public abstract class SelenideExtended extends BaseClass {
 
     @SneakyThrows
     public By getByClause(String identifier){
+        String element;
         if(identifier.startsWith(EnumUtil.XPATH)){
-            return By.xpath(identifier.substring(EnumUtil.XPATH.length()));
+            element = identifier.substring(EnumUtil.XPATH.length());
+            return By.xpath(element);
         }
         if(identifier.startsWith(EnumUtil.TEXT)){
-            return By.xpath(String.format(textXpath,identifier.substring(EnumUtil.TEXT.length())));
+            element = identifier.substring(EnumUtil.TEXT.length());
+            return By.xpath(String.format(textXpath,element,element));
         }
         if(identifier.startsWith(EnumUtil.CONTAINS_TEXT)){
-            return By.xpath(String.format(textContainsXpath,identifier.substring(EnumUtil.TEXT.length())));
+            element = identifier.substring(EnumUtil.CONTAINS_TEXT.length());
+            return By.xpath(String.format(textContainsXpath,element,element));
         }
         if(identifier.startsWith(EnumUtil.ID_KEY)){
-            return By.id(identifier.substring(EnumUtil.ID_KEY.length()));
+            element = identifier.substring(EnumUtil.ID_KEY.length());
+            return By.id(element);
         }
         if(identifier.startsWith(EnumUtil.NAME_KEY)){
-            return By.name(identifier.substring(EnumUtil.NAME_KEY.length()));
+            element = identifier.substring(EnumUtil.NAME_KEY.length());
+            return By.name(element);
         }
         if(identifier.startsWith(EnumUtil.CLASS_NAME)){
-            return By.className(identifier.substring(EnumUtil.CLASS_NAME.length()));
+            element = identifier.substring(EnumUtil.CLASS_NAME.length());
+            return By.className(element);
         }
         if(identifier.startsWith(EnumUtil.LINK_TEXT)){
-            return By.linkText(identifier.substring(EnumUtil.LINK_TEXT.length()));
+            element = identifier.substring(EnumUtil.LINK_TEXT.length());
+            return By.linkText(element);
         }
         if(identifier.startsWith(EnumUtil.TAG_NAME)){
-            return By.tagName(identifier.substring(EnumUtil.TAG_NAME.length()));
+            element = identifier.substring(EnumUtil.TAG_NAME.length());
+            return By.tagName(element);
         }
         if(identifier.startsWith(EnumUtil.CSS_KEY)){
-            return By.cssSelector(identifier.substring(EnumUtil.CSS_KEY.length()));
+            element = identifier.substring(EnumUtil.CSS_KEY.length());
+            return By.cssSelector(element);
         }
-        throw new Exception("Element identifier criteria does not match, use "+ EnumUtil.class);
+        return By.xpath(String.format(textXpath,identifier.trim(),identifier.trim()));
+    }
+
+    public void waitForElementTobeDisappear(String identifier) {
+        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime stopTime = currentTime.plusSeconds(elementLoadWait);
+
+        while (stopTime.isAfter(currentTime)) {
+                try {
+                    if (!isElementDisplayed(identifier)) {
+                        break;
+                    }
+                    implicitWaitInMilliSeconds(pollingTimeOut);
+                } catch (ElementNotFound | TimeoutException e) {
+                    continue;
+                }
+                currentTime = LocalDateTime.now();
+            }
+        implicitWaitInSeconds(3);
+        }
+//                 WebDriverWait webDriverWait = (WebDriverWait) new WebDriverWait(getDriver(), 60).pollingEvery(Duration.ofMillis(500))
+//                    .ignoring(NoSuchElementException.class).ignoring(TimeoutException.class);
+//            webDriverWait.until(ExpectedConditions.invisibilityOfElementLocated(getByClause(identifier)));
+        //}
+//            FluentWait<WebDriver> wait = new FluentWait<>(getDriver()).withTimeout(Duration.ofSeconds(elementLoadWait)).
+//                    pollingEvery(Duration.ofMillis(500)).ignoring(NoSuchElementException.class).ignoring(TimeoutException.class);
+//            wait.until(ExpectedConditions.invisibilityOf(getElement(identifier)));
+    //}
+
+    public void waitForAbekaBGProcessLogoDisappear(){
+        waitForElementTobeDisappear(AbekaHome.abekaBGProcessLogo);
     }
 }

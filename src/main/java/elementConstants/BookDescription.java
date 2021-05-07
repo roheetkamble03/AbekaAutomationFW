@@ -8,4 +8,5 @@ public class BookDescription {
     public static String accredited = "text=Accredited";
     public static String independentStudy = "text=Independent Study";
     public static String addToCart = "id=lbnAddToCart";
+    public static String quantityTxtBox = "id=txtQuantity";
 }

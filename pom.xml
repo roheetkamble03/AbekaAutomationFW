@@ -29,18 +29,23 @@
             <version>1.18.20</version>
             <scope>provided</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>7.4.0</version>
+            <scope>compile</scope>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/io.qameta.allure/allure-maven -->
         <dependency>
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-maven</artifactId>
             <version>2.8</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/io.qameta.allure/allure-selenide -->
         <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>7.4.0</version>
-            <scope>compile</scope>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-selenide</artifactId>
+            <version>2.13.9</version>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
@@ -59,6 +64,19 @@
             <groupId>nz.ac.waikato.cms.weka</groupId>
             <artifactId>WekaExcel</artifactId>
             <version>1.0.8</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.assertj/assertj-core -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.19.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.19.0</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
     <build>

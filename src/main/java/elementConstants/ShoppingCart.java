@@ -1,5 +1,5 @@
 package elementConstants;
 
-public class ViewCart {
+public class ShoppingCart {
     public static String checkOutBtn = "id=lbnFinishOrder";
 }
