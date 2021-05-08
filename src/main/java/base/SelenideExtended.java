@@ -26,8 +26,8 @@ import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
 public abstract class SelenideExtended extends BaseClass {
-    String textXpath = "(//*[normalize-space(text())='%s']|//text()[normalize-space()='%s'])[1]";
-    String textContainsXpath = "(//*[contains(normalize-space(text()),'%s')]|//text()[contains(normalize-space(),'%s')])[1]";
+    String textXpath = "(//*[normalize-space(text())='%s' or normalize-space(@value)='%s']|//text()[normalize-space()='%s'])[1]";
+    String textContainsXpath = "(//*[contains(normalize-space(text()),'%s') or contains(normalize-space(@value),'%s')]|//text()[contains(normalize-space(),'%s')])[1]";
 
     public void click(String identifier){
         waitForElementTobeExist(identifier);
@@ -37,6 +37,24 @@ public abstract class SelenideExtended extends BaseClass {
     public boolean isElementDisplayed(String identifier) {
         try {
             return getElement(identifier).isDisplayed();
+        }catch (ElementNotFound e){
+            return false;
+        }
+    }
+
+    public boolean isElementDisplayed(SelenideElement parentElement, String childIdentifier) {
+        try {
+            bringChildElementIntoView(parentElement,childIdentifier);
+            return getChildElement(parentElement,childIdentifier).isDisplayed();
+        }catch (ElementNotFound e){
+            return false;
+        }
+    }
+
+    public boolean isElementExists(String identifier) {
+        try {
+            getElement(identifier);
+            return true;
         }catch (ElementNotFound e){
             return false;
         }
@@ -60,6 +78,28 @@ public abstract class SelenideExtended extends BaseClass {
     public void type(String identifier, String text) {
         SelenideElement ele = getElement(identifier);
         ele.setValue(text);
+    }
+
+    public boolean isElementTextEquals(String identifier, String expectedText){
+        return getElementText(identifier).equals(expectedText);
+    }
+
+    public String getElementText(String identifier){
+        try {
+            SelenideElement element = getElement(identifier);
+            if(element.text().length()!=0){
+                return element.text();
+            }else if(element.getText().length()!=0){
+                return element.getText();
+            }else if(element.innerText().length()!=0){
+                return element.innerText();
+            }else {
+                return "";
+            }
+        }catch (NullPointerException e){
+            return "";
+        }
+
     }
 
     /**
@@ -189,6 +229,18 @@ public abstract class SelenideExtended extends BaseClass {
             executor.executeScript("arguments[0].scrollIntoView({block: \"center\"});", getElement(identifier));
             Actions actions = new Actions(getDriver());
             actions.moveToElement(getElement(identifier)).build().perform();
+    }
+
+    /**
+     * Bringing element into view via java script
+     * @param identifier
+     * @return
+     */
+    public void bringChildElementIntoView(SelenideElement parentElement, String identifier) {
+        JavascriptExecutor executor = (JavascriptExecutor) getDriver();
+        executor.executeScript("arguments[0].scrollIntoView({block: \"center\"});", getChildElement(parentElement,identifier));
+        Actions actions = new Actions(getDriver());
+        actions.moveToElement(getChildElement(parentElement,identifier)).build().perform();
     }
 
     /**
@@ -447,6 +499,10 @@ public abstract class SelenideExtended extends BaseClass {
         return $(getByClause(identifier));
     }
 
+    public SelenideElement getChildElement(SelenideElement parentElement, String childIdentifier){
+        return parentElement.find(getByClause(childIdentifier));
+    }
+
     @SneakyThrows
     public List<SelenideElement> getElements(String identifier) {
         return $$(getByClause(identifier));
@@ -461,11 +517,11 @@ public abstract class SelenideExtended extends BaseClass {
         }
         if(identifier.startsWith(EnumUtil.TEXT)){
             element = identifier.substring(EnumUtil.TEXT.length());
-            return By.xpath(String.format(textXpath,element,element));
+            return By.xpath(String.format(textXpath,element,element,element));
         }
         if(identifier.startsWith(EnumUtil.CONTAINS_TEXT)){
             element = identifier.substring(EnumUtil.CONTAINS_TEXT.length());
-            return By.xpath(String.format(textContainsXpath,element,element));
+            return By.xpath(String.format(textContainsXpath,element,element,element));
         }
         if(identifier.startsWith(EnumUtil.ID_KEY)){
             element = identifier.substring(EnumUtil.ID_KEY.length());
@@ -491,7 +547,7 @@ public abstract class SelenideExtended extends BaseClass {
             element = identifier.substring(EnumUtil.CSS_KEY.length());
             return By.cssSelector(element);
         }
-        return By.xpath(String.format(textXpath,identifier.trim(),identifier.trim()));
+        return By.xpath(String.format(textXpath,identifier.trim(),identifier.trim(),identifier.trim()));
     }
 
     public void waitForElementTobeDisappear(String identifier) {

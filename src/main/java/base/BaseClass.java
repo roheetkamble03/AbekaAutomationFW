@@ -38,6 +38,7 @@ public abstract class BaseClass {
     int elementLoadWait;
     int commonWait;
     int pollingTimeOut;
+    String grid;
     public static WebDriver driver;
 
     public void log(String message){
@@ -69,6 +70,7 @@ public abstract class BaseClass {
             elementLoadWait = Integer.parseInt(properties.getProperty(CommonConstants.elementLoadWait));
             commonWait = Integer.parseInt(properties.getProperty(CommonConstants.commonWait));
             pollingTimeOut = Integer.parseInt(properties.getProperty(CommonConstants.pollingTimeOut));
+            grid = properties.getProperty(CommonConstants.grid);
         }catch (IOException e){
             e.printStackTrace();
         }

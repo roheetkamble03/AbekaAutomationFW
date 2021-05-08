@@ -10,6 +10,7 @@ public class SearchScreen extends GenericAction {
 
     public BookDescriptionScreen selectProduct(String productName){
         //bringElementIntoView(productName);
+        softAssertions.assertThat(isElementExists(productName));
         click(productName);
         return new BookDescriptionScreen();
     }

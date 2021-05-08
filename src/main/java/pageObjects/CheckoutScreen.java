@@ -76,4 +76,8 @@ public class CheckoutScreen extends GenericAction {
         waitForAbekaBGProcessLogoDisappear();
         return new OrderConfirmationScreen();
     }
+
+    public CheckoutScreen validateProductInCart(){
+        return this;
+    }
 }

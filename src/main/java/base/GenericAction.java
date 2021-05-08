@@ -6,6 +6,9 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import pageObjects.AbekaHomeScreen;
 
+import java.text.NumberFormat;
+import java.util.Locale;
+
 public abstract class GenericAction extends SelenideExtended{
 
     @BeforeMethod
@@ -19,6 +22,7 @@ public abstract class GenericAction extends SelenideExtended{
     public void tearDown(){
         log("After each method tearing down the test in GenericAction.class");
         super.tearDown();
+        softAssertions.assertAll();
     }
     public AbekaHomeScreen loginToAbeka(String userName, String password){
         waitAndCloseSignUpPop();
@@ -42,5 +46,11 @@ public abstract class GenericAction extends SelenideExtended{
     public void waitAndCloseSignUpPop(){
         waitForElementTobeEnabled(AbekaHome.closeSignup);
         click(AbekaHome.closeSignup);
+    }
+
+    public String formatCurrencyToDollar(Double amount){
+        Locale usa = new Locale("en","US");
+        NumberFormat numberFormat = NumberFormat.getCurrencyInstance(usa);
+        return numberFormat.format(amount);
     }
 }
